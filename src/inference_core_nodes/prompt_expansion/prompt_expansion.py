@@ -101,6 +101,11 @@ class FooocusExpansion:
 @cache
 def load_expansion_runner(model_name: str):
     model_path = folder_paths.get_full_path(MODEL_FOLDER_NAME, model_name)
+    
+    # If model is a file, use the parent directory
+    if Path(model_path).is_file():
+        model_path = str(Path(model_path).parent)
+    
     return FooocusExpansion(model_path)
 
 
