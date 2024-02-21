@@ -7,8 +7,8 @@ from pathlib import Path
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
 
+import folder_paths
 from comfy import model_management
-from comfy import folder_paths
 from comfy.model_patcher import ModelPatcher
 from .util import join_prompts, remove_empty_str
 

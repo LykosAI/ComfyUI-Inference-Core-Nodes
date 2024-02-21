@@ -9,7 +9,7 @@ __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
 
 def _add_folder_paths():
     from pathlib import Path
-    from inference.inference_server import folder_paths
+    import folder_paths
 
     folder_paths.add_model_folder_path(
         MODEL_FOLDER_NAME,
