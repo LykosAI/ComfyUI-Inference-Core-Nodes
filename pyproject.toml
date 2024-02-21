@@ -1,5 +1,5 @@
 [project]
-name = "comfyui-inference-core-nodes"
+name = "inference-core-nodes"
 dynamic = ["version"]
 description = ""
 authors = [
