@@ -1,4 +1,5 @@
 from __future__ import annotations
+from math import exp
 
 import random
 import logging
@@ -148,13 +149,41 @@ class PromptExpansion:
             seed = abs(seed)
         elif seed > max_seed:
             seed = seed % max_seed
-
-        expansion_text = expansion(prompt, seed)
-        expanded_prompt = join_prompts(prompt, expansion_text)
+            
+        prompt_parts = []
+        expanded_parts = []
+            
+        # Split prompt if longer than 256
+        if len(prompt) > 256:
+            prompt_lines = prompt.splitlines()
+            # Fill part until 256
+            prompt_parts = [""]
+            filled_chars = 0
+            for line in prompt_lines:
+                # When adding the line would exceed 256, start a new part
+                if filled_chars + len(line) > 256:
+                    prompt_parts.append(line)
+                    filled_chars = len(line)
+                else:
+                    prompt_parts[-1] += line
+                    filled_chars += len(line)
+        else:
+            prompt_parts = [prompt]
         
+        for i, part in enumerate(prompt_parts):
+            expansion_part = expansion(part, seed)
+            full_part = join_prompts(part, expansion_part)
+            expanded_parts.append(full_part)
+            
+        expanded_prompt = "\n".join(expanded_parts)
+            
         if log_prompt:
-            logger.info(f"Prompt: {prompt}")
-            logger.info(f"Expanded Prompt: {expanded_prompt}")
+            if logger.isEnabledFor(logging.INFO):
+                logger.info(f"Prompt: {prompt!r}")
+                logger.info(f"Expanded Prompt: {expanded_prompt!r}")
+            else:
+                print(f"Prompt: {prompt!r}")
+                print(f"Expanded Prompt: {expanded_prompt!r}")
 
         return expanded_prompt, seed
 
