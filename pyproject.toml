@@ -23,11 +23,6 @@ include = [
     "inference_core_nodes.*"
 ]
 
-[tool.flit.metadata]
-module = "inference_core_nodes"
-home-page = "https://github.com/LykosAI/ComfyUI-Inference-Core-Nodes"
-description-file = "README.md"
-
 [build-system]
 requires = ["flit_core >=3.5,<4"]
 build-backend = "flit_core.buildapi"
