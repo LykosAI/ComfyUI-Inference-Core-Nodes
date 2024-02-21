@@ -16,10 +16,7 @@ MODEL_FOLDER_NAME = "prompt_expansion"
 
 CONFIGS_DIR = Path(__file__).parent.joinpath("configs")
 
-fooocus_magic_split = [
-    ", extremely",
-    ", intricate,"
-]
+fooocus_magic_split = [", extremely", ", intricate,"]
 
 disallowed_chars_table = str.maketrans("", "", "[]【】()（）|:：")
 
@@ -46,7 +43,9 @@ class FooocusExpansion:
         self.tokenizer = AutoTokenizer.from_pretrained(model_directory)
         self.model = AutoModelForCausalLM.from_pretrained(model_directory)
 
-        positive_tokens = model_directory.joinpath("positive.txt").read_text().splitlines()
+        positive_tokens = (
+            model_directory.joinpath("positive.txt").read_text().splitlines()
+        )
 
         positive_tokens = []
 
@@ -86,7 +85,7 @@ class FooocusExpansion:
         )
 
         response = self.tokenizer.batch_decode(features, skip_special_tokens=True)
-        result = response[0][len(origin):]
+        result = response[0][len(origin) :]
         result = safe_str(result)
         result = result.translate(disallowed_chars_table)
         return result
@@ -110,7 +109,7 @@ class PromptExpansion:
             "required": {
                 "model_name": (folder_paths.get_filename_list("prompt_expansion"),),
                 "text": ("STRING", {"multiline": True}),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFF})
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFF}),
             },
         }
 
@@ -151,4 +150,6 @@ class PromptExpansion:
 NODE_CLASS_MAPPINGS = {"Inference_Core_PromptExpansion": PromptExpansion}
 
 # A dictionary that contains human-readable titles for the nodes
-NODE_DISPLAY_NAME_MAPPINGS = {"Inference_Core_PromptExpansion": "[Inference.Core] Prompt Expansion"}
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "Inference_Core_PromptExpansion": "[Inference.Core] Prompt Expansion"
+}

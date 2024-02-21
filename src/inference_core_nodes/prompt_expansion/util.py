@@ -11,4 +11,4 @@ def join_prompts(*args, **kwargs):
         return ""
     if len(prompts) == 1:
         return prompts[0]
-    return ', '.join(prompts)
+    return ", ".join(prompts)
