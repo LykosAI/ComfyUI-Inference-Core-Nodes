@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+import logging
 from functools import cache
 from pathlib import Path
 
@@ -15,6 +16,8 @@ from .util import join_prompts, remove_empty_str
 MODEL_FOLDER_NAME = "prompt_expansion"
 
 CONFIGS_DIR = Path(__file__).parent.joinpath("configs")
+
+logger = logging.getLogger(__name__)
 
 fooocus_magic_split = [", extremely", ", intricate,"]
 
@@ -110,6 +113,7 @@ class PromptExpansion:
                 "model_name": (folder_paths.get_filename_list("prompt_expansion"),),
                 "text": ("STRING", {"multiline": True}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFF}),
+                "log_prompt": ("BOOLEAN", {"default": False})
             },
         }
 
@@ -127,7 +131,7 @@ class PromptExpansion:
 
     @staticmethod
     @torch.no_grad()
-    def expand_prompt(model_name: str, text: str, seed: int, log_prompt: str):
+    def expand_prompt(model_name: str, text: str, seed: int, log_prompt: bool):
         expansion = load_expansion_runner(model_name)
 
         prompt = remove_empty_str([safe_str(text)], default="")[0]
@@ -142,6 +146,10 @@ class PromptExpansion:
 
         expansion_text = expansion(prompt, seed)
         expanded_prompt = join_prompts(prompt, expansion_text)
+        
+        if log_prompt:
+            logger.info(f"Prompt: {prompt}")
+            logger.info(f"Expanded Prompt: {expanded_prompt}")
 
         return expanded_prompt, seed
 
