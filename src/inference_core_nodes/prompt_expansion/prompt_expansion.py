@@ -189,9 +189,9 @@ class PromptExpansion:
 
 
 # Define a mapping of node class names to their respective classes
-NODE_CLASS_MAPPINGS = {"Inference_Core_PromptExpansion": PromptExpansion}
+NODE_CLASS_MAPPINGS = {"PromptExpansion": PromptExpansion}
 
 # A dictionary that contains human-readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Inference_Core_PromptExpansion": "[Inference.Core] Prompt Expansion"
+    "PromptExpansion": "[Inference.Core] Prompt Expansion"
 }

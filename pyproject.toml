@@ -8,11 +8,39 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10,<3.12"
 
-dependencies = []
+dependencies = [
+    "Pillow",
+    "opencv-python>=4.7.0.72",
+    "scipy",
+    "scikit-image",
+    "python-dateutil",
+    "mediapipe",
+    "svglib",
+    "fvcore",
+    "yapf",
+    "omegaconf",
+    "ftfy",
+    "addict",
+    "yacs",
+    "trimesh[easy]",
+    "albumentations",
+    "scikit-learn"
+]
 
 [project.optional-dependencies]
-cuda = []
 cpu = []
+cuda = [
+    "onnxruntime-gpu"
+]
+cuda-12 = [
+    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/2692857e-05ef-43b4-ba9c-ccf1c22c437c/_packaging/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/download/onnxruntime-gpu/1.17.1/onnxruntime_gpu-1.17.1-cp310-cp310-win_amd64.whl ; platform_system == 'Windows'"
+]
+directml = [
+    "onnxruntime-directml"
+]
+rocm = [
+    "onnxruntime-gpu"
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "inference.__version__"}
