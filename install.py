@@ -12,8 +12,25 @@ def pip_install(package: str) -> None:
     )
 
 
+def try_get_cuda_version() -> str | None:
+    try:
+        import torch
+        return torch.version.cuda
+    except ImportError or AttributeError:
+        return None
+
+
 def main() -> None:
-    pip_install("-e .")
+
+    cuda_version = try_get_cuda_version()
+    if cuda_version is not None:
+        if cuda_version.startswith("12."):
+            pip_install("-e .[cuda-12]")
+        else:
+            pip_install("-e .[cuda]")
+    else:
+        # Default install
+        pip_install("-e .[cpu]")
 
 
 if __name__ == "__main__":
