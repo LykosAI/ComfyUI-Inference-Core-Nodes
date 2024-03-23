@@ -16,7 +16,7 @@ Or
 - (CUDA 11 or latest stable) Run `pip install -e .[cuda]`
 - (CUDA 12) Run `pip install -e .[cuda12]`
 - (RoCM) Run `pip install -e .[rocm]`
-- (DirectML) Run `pip install -e .[dml]`
+- (DirectML) Run `pip install -e .[directml]`
 - (CPU Only) Run `pip install -e .[cpu]`
 
 Or
