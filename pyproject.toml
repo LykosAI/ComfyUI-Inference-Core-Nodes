@@ -24,7 +24,8 @@ dependencies = [
     "yacs",
     "trimesh[easy]",
     "albumentations",
-    "scikit-learn"
+    "scikit-learn",
+    "diffusers>=0.25.0"
 ]
 
 [project.optional-dependencies]
@@ -34,17 +35,17 @@ cuda = [
 ]
 cuda-12 = [
     # CUDA 12, Python 3.10, Windows
-    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/PublicPackages/_apis/packaging/feeds/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/packages/onnxruntime-gpu/versions/1.17.1/onnxruntime_gpu-1.17.1-cp310-cp310-win_amd64.whl/content ; platform_system == 'Windows' and python_version == '3.10'",
+    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/2692857e-05ef-43b4-ba9c-ccf1c22c437c/_packaging/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/download/onnxruntime-gpu/1.17.1/onnxruntime_gpu-1.17.1-cp310-cp310-win_amd64.whl ; platform_system == 'Windows' and python_version == '3.10'",
     # CUDA 12, Python 3.10, Linux
-    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/PublicPackages/_apis/packaging/feeds/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/packages/onnxruntime-gpu/versions/1.17.1/onnxruntime_gpu-1.17.1-cp311-cp311-manylinux_2_28_x86_64.whl/content ; platform_system == 'Linux' and python_version == '3.10'",
+    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/2692857e-05ef-43b4-ba9c-ccf1c22c437c/_packaging/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/download/onnxruntime-gpu/1.17.1/onnxruntime_gpu-1.17.1-cp310-cp310-manylinux_2_28_x86_64.whl ; platform_system == 'Linux' and python_version == '3.10'",
     # CUDA 12, Python 3.11, Windows
-    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/PublicPackages/_apis/packaging/feeds/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/packages/onnxruntime-gpu/versions/1.17.1/onnxruntime_gpu-1.17.1-cp311-cp311-win_amd64.whl/content ; platform_system == 'Windows' and python_version == '3.11'",
+    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/2692857e-05ef-43b4-ba9c-ccf1c22c437c/_packaging/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/download/onnxruntime-gpu/1.17.1/onnxruntime_gpu-1.17.1-cp311-cp311-win_amd64.whl ; platform_system == 'Windows' and python_version == '3.11'",
     # CUDA 12, Python 3.11, Linux
-    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/PublicPackages/_apis/packaging/feeds/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/packages/onnxruntime-gpu/versions/1.17.1/onnxruntime_gpu-1.17.1-cp311-cp311-manylinux_2_28_x86_64.whl/content ; platform_system == 'Linux' and python_version == '3.11'",
+    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/2692857e-05ef-43b4-ba9c-ccf1c22c437c/_packaging/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/download/onnxruntime-gpu/1.17.1/onnxruntime_gpu-1.17.1-cp311-cp311-manylinux_2_28_x86_64.whl ; platform_system == 'Linux' and python_version == '3.11'",
     # CUDA 12, Python 3.12, Windows
-    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/PublicPackages/_apis/packaging/feeds/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/packages/onnxruntime-gpu/versions/1.17.1/onnxruntime_gpu-1.17.1-cp312-cp312-win_amd64.whl/content ; platform_system == 'Windows' and python_version == '3.12'",
+    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/2692857e-05ef-43b4-ba9c-ccf1c22c437c/_packaging/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/download/onnxruntime-gpu/1.17.1/onnxruntime_gpu-1.17.1-cp312-cp312-win_amd64.whl ; platform_system == 'Windows' and python_version == '3.12'",
     # CUDA 12, Python 3.12, Linux
-    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/PublicPackages/_apis/packaging/feeds/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/packages/onnxruntime-gpu/versions/1.17.1/onnxruntime_gpu-1.17.1-cp312-cp312-manylinux_2_28_x86_64.whl/content ; platform_system == 'Linux' and python_version == '3.12'"
+    "onnxruntime-gpu @ https://aiinfra.pkgs.visualstudio.com/2692857e-05ef-43b4-ba9c-ccf1c22c437c/_packaging/9387c3aa-d9ad-4513-968c-383f6f7f53b8/pypi/download/onnxruntime-gpu/1.17.1/onnxruntime_gpu-1.17.1-cp312-cp312-manylinux_2_28_x86_64.whl ; platform_system == 'Linux' and python_version == '3.12'"
 ]
 directml = [
     "onnxruntime-directml"
