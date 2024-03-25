@@ -24,7 +24,8 @@ dependencies = [
     "yacs",
     "trimesh[easy]",
     "albumentations",
-    "scikit-learn"
+    "scikit-learn",
+    "diffusers>=0.25.0"
 ]
 
 [project.optional-dependencies]
