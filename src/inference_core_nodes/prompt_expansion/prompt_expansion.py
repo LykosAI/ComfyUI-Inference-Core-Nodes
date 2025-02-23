@@ -9,6 +9,9 @@ from pathlib import Path
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
 
+import comfy.model_management
+import comfy.model_base
+from comfy.model_base import ModelType
 import folder_paths
 from comfy import model_management
 from comfy.model_patcher import ModelPatcher
@@ -38,76 +41,68 @@ def remove_pattern(x, pattern):
     return x
 
 
-class FooocusExpansion:
-    def __init__(self, model_directory: str):
-        model_directory = Path(model_directory)
-        if not model_directory.exists() or not model_directory.is_dir():
-            raise ValueError(f"Model directory {model_directory} does not exist")
+class ComfyTransformerModel(comfy.model_base.BaseModel):
+    def __init__(self, model_name: str, model_type=ModelType.EPS, device=None, *args, **kwargs):
+        # Find the full path to the model
+        model_path = folder_paths.get_full_path("prompt_expansion", model_name)
+        if model_path is None:
+            raise ValueError(f"Model {model_name} not found in prompt_expansion folder.")
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_directory)
-        self.model = AutoModelForCausalLM.from_pretrained(model_directory)
+        # If model is a file, use the parent directory
+        if Path(model_path).is_file():
+            model_path = str(Path(model_path).parent)
 
-        positive_tokens = (
-            model_directory.joinpath("positive.txt").read_text().splitlines()
-        )
+        class MinimalConfig:
+            def __init__(self):
+                self.unet_config = {"disable_unet_model_creation": True}
+                self.latent_format = None
+                self.custom_operations = None
+                self.scaled_fp8 = None
+                self.memory_usage_factor = 1.0
+                self.manual_cast_dtype = None
+                self.optimizations = {}
+                self.sampling_settings = {}
 
-        positive_tokens = []
+        config = MinimalConfig()
 
-        self.model.eval()
+        super().__init__(config, model_type=model_type, device=device)
 
-        load_device = model_management.text_encoder_device()
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.model = AutoModelForCausalLM.from_pretrained(model_path)
 
-        if "mps" in load_device.type:
-            load_device = torch.device("cpu")
+        self.load_device = comfy.model_management.text_encoder_device()
+        self.offload_device = comfy.model_management.text_encoder_offload_device()
 
-        if "cpu" not in load_device.type and model_management.should_use_fp16():
+        if "mps" in self.load_device.type:
+            self.load_device = torch.device("cpu")
+
+        if "cpu" not in self.load_device.type and comfy.model_management.should_use_fp16():
             self.model.half()
 
-        offload_device = model_management.text_encoder_offload_device()
-        self.patcher = ModelPatcher(
-            self.model, load_device=load_device, offload_device=offload_device
-        )
+        self.model.eval()
+        self.model.to(self.load_device)
+        self.device = self.load_device
 
-    def __call__(self, prompt: str, seed: int) -> str:
-        model_management.load_model_gpu(self.patcher)
-        set_seed(seed)
-        origin = safe_str(prompt)
-        prompt = origin + fooocus_magic_split[seed % len(fooocus_magic_split)]
+    def apply_model(self, prompt: str, seed: int) -> str:
+        with torch.no_grad():
+            origin = safe_str(prompt)
+            prompt = origin + fooocus_magic_split[seed % len(fooocus_magic_split)]
 
-        tokenized_kwargs = self.tokenizer(prompt, return_tensors="pt")
-        tokenized_kwargs.data["input_ids"] = tokenized_kwargs.data["input_ids"].to(
-            self.patcher.load_device
-        )
-        tokenized_kwargs.data["attention_mask"] = tokenized_kwargs.data[
-            "attention_mask"
-        ].to(self.patcher.load_device)
+            tokenized_kwargs = self.tokenizer(prompt, return_tensors="pt")
+            tokenized_kwargs.data["input_ids"] = tokenized_kwargs.data["input_ids"].to(self.load_device)
+            tokenized_kwargs.data["attention_mask"] = tokenized_kwargs.data["attention_mask"].to(self.load_device)
 
-        # https://huggingface.co/blog/introducing-csearch
-        # https://huggingface.co/docs/transformers/generation_strategies
-        features = self.model.generate(
-            **tokenized_kwargs, num_beams=1, max_new_tokens=256, do_sample=True
-        )
+            # https://huggingface.co/blog/introducing-csearch
+            # https://huggingface.co/docs/transformers/generation_strategies
+            features = self.model.generate(
+                **tokenized_kwargs, num_beams=1, max_new_tokens=256, do_sample=True
+            )
 
-        response = self.tokenizer.batch_decode(features, skip_special_tokens=True)
-        result = response[0][len(origin) :]
-        result = safe_str(result)
-        result = result.translate(disallowed_chars_table)
-        return result
-
-    def expand_and_join(self, prompt: str, seed: int) -> str:
-        expansion = self(prompt, seed)
-        return join_prompts(prompt, expansion)
-
-
-@cache
-def load_expansion_runner(model_name: str):
-    model_path = folder_paths.get_full_path(MODEL_FOLDER_NAME, model_name)
-    
-    # If model is a file, use the parent directory
-    if Path(model_path).is_file():
-        model_path = str(Path(model_path).parent)
-    
-    return FooocusExpansion(model_path)
+            response = self.tokenizer.batch_decode(features, skip_special_tokens=True)
+            result = response[0][len(origin):]
+            result = safe_str(result)
+            result = result.translate(disallowed_chars_table)
+            return result
 
 
 class PromptExpansion:
@@ -138,7 +133,7 @@ class PromptExpansion:
     @staticmethod
     @torch.no_grad()
     def expand_prompt(model_name: str, text: str, seed: int, log_prompt: bool):
-        expansion = load_expansion_runner(model_name)
+        expansion_model = ComfyTransformerModel(model_name)
 
         prompt = remove_empty_str([safe_str(text)], default="")[0]
 
@@ -171,7 +166,7 @@ class PromptExpansion:
             prompt_parts = [prompt]
         
         for i, part in enumerate(prompt_parts):
-            expansion_part = expansion(part, seed)
+            expansion_part = expansion_model.apply_model(part, seed)
             full_part = join_prompts(part, expansion_part)
             expanded_parts.append(full_part)
             
