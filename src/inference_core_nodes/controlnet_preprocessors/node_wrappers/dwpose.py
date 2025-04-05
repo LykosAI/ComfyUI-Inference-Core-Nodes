@@ -1,8 +1,8 @@
-from ..utils import common_annotator_call, create_node_input_types
+from ..utils import common_annotator_call, define_preprocessor_inputs, INPUT
 import comfy.model_management as model_management
 import numpy as np
 import warnings
-from controlnet_aux.dwpose import DwposeDetector, AnimalposeDetector
+from custom_controlnet_aux.dwpose import DwposeDetector, AnimalposeDetector
 import os
 import json
 
@@ -30,27 +30,28 @@ if not os.environ.get("DWPOSE_ONNXRT_CHECKED"):
 class DWPose_Preprocessor:
     @classmethod
     def INPUT_TYPES(s):
-        input_types = create_node_input_types(
-            detect_hand=(["enable", "disable"], {"default": "enable"}),
-            detect_body=(["enable", "disable"], {"default": "enable"}),
-            detect_face=(["enable", "disable"], {"default": "enable"})
-        )
-        input_types["optional"] = {
-            **input_types["optional"],
-            "bbox_detector": (
+        return define_preprocessor_inputs(
+            detect_hand=INPUT.COMBO(["enable", "disable"]),
+            detect_body=INPUT.COMBO(["enable", "disable"]),
+            detect_face=INPUT.COMBO(["enable", "disable"]),
+            resolution=INPUT.RESOLUTION(),
+            bbox_detector=INPUT.COMBO(
                 ["yolox_l.torchscript.pt", "yolox_l.onnx", "yolo_nas_l_fp16.onnx", "yolo_nas_m_fp16.onnx", "yolo_nas_s_fp16.onnx"],
-                {"default": "yolox_l.onnx"}
+                default="yolox_l.onnx"
             ),
-            "pose_estimator": (["dw-ll_ucoco_384_bs5.torchscript.pt", "dw-ll_ucoco_384.onnx", "dw-ll_ucoco.onnx"], {"default": "dw-ll_ucoco_384_bs5.torchscript.pt"})
-        }
-        return input_types
+            pose_estimator=INPUT.COMBO(
+                ["dw-ll_ucoco_384_bs5.torchscript.pt", "dw-ll_ucoco_384.onnx", "dw-ll_ucoco.onnx"],
+                default="dw-ll_ucoco_384_bs5.torchscript.pt"
+            ),
+            scale_stick_for_xinsr_cn=INPUT.COMBO(["disable", "enable"])
+        )
 
     RETURN_TYPES = ("IMAGE", "POSE_KEYPOINT")
     FUNCTION = "estimate_pose"
 
     CATEGORY = "ControlNet Preprocessors/Faces and Poses Estimators"
 
-    def estimate_pose(self, image, detect_hand, detect_body, detect_face, resolution=512, bbox_detector="yolox_l.onnx", pose_estimator="dw-ll_ucoco_384.onnx", **kwargs):
+    def estimate_pose(self, image, detect_hand="enable", detect_body="enable", detect_face="enable", resolution=512, bbox_detector="yolox_l.onnx", pose_estimator="dw-ll_ucoco_384.onnx", scale_stick_for_xinsr_cn="disable", **kwargs):
         if bbox_detector == "yolox_l.onnx":
             yolo_repo = DWPOSE_MODEL_NAME
         elif "yolox" in bbox_detector:
@@ -78,13 +79,14 @@ class DWPose_Preprocessor:
         detect_hand = detect_hand == "enable"
         detect_body = detect_body == "enable"
         detect_face = detect_face == "enable"
+        scale_stick_for_xinsr_cn = scale_stick_for_xinsr_cn == "enable"
         self.openpose_dicts = []
         def func(image, **kwargs):
             pose_img, openpose_dict = model(image, **kwargs)
             self.openpose_dicts.append(openpose_dict)
             return pose_img
 
-        out = common_annotator_call(func, image, include_hand=detect_hand, include_face=detect_face, include_body=detect_body, image_and_json=True, resolution=resolution)
+        out = common_annotator_call(func, image, include_hand=detect_hand, include_face=detect_face, include_body=detect_body, image_and_json=True, resolution=resolution, xinsr_stick_scaling=scale_stick_for_xinsr_cn)
         del model
         return {
             'ui': { "openpose_json": [json.dumps(self.openpose_dicts, indent=4)] },
@@ -94,12 +96,16 @@ class DWPose_Preprocessor:
 class AnimalPose_Preprocessor:
     @classmethod
     def INPUT_TYPES(s):
-        return create_node_input_types(
-            bbox_detector = (
+        return define_preprocessor_inputs(
+            bbox_detector = INPUT.COMBO(
                 ["yolox_l.torchscript.pt", "yolox_l.onnx", "yolo_nas_l_fp16.onnx", "yolo_nas_m_fp16.onnx", "yolo_nas_s_fp16.onnx"],
-                {"default": "yolox_l.torchscript.pt"}
+                default="yolox_l.torchscript.pt"
             ),
-            pose_estimator = (["rtmpose-m_ap10k_256_bs5.torchscript.pt", "rtmpose-m_ap10k_256.onnx"], {"default": "rtmpose-m_ap10k_256_bs5.torchscript.pt"})
+            pose_estimator = INPUT.COMBO(
+                ["rtmpose-m_ap10k_256_bs5.torchscript.pt", "rtmpose-m_ap10k_256.onnx"],
+                default="rtmpose-m_ap10k_256_bs5.torchscript.pt"
+            ),
+            resolution = INPUT.RESOLUTION()
         )
 
     RETURN_TYPES = ("IMAGE", "POSE_KEYPOINT")
