@@ -1,10 +1,11 @@
 __all__ = ("__version__", "NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS")
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 
 def _get_node_mappings():
     import importlib
+    import logging
     import pkgutil
     import re
 
@@ -32,8 +33,16 @@ def _get_node_mappings():
     node_display_name_mappings = {}
 
     for submodule_info in pkgutil.iter_modules(__path__):
-        # import
-        submodule = importlib.import_module(f"{__name__}.{submodule_info.name}")
+        # One submodule failing to import (a missing or incompatible dependency)
+        # must not take every other node in the pack down with it.
+        try:
+            submodule = importlib.import_module(f"{__name__}.{submodule_info.name}")
+        except Exception:
+            logging.exception(
+                "[Inference.Core] Failed to load '%s', its nodes will be unavailable",
+                submodule_info.name,
+            )
+            continue
 
         node_class_mappings.update(getattr(submodule, "NODE_CLASS_MAPPINGS"))
         node_display_name_mappings.update(
